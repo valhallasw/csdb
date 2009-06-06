@@ -46,5 +46,8 @@ namespace csdb
 
 		[CommandLineArgumentSyntax("/dbfilename:{0}")]
 		public string DatabaseFilename { get; set; }
+
+        [CommandLineArgumentSyntax("/edmx:{0}")]
+        public string EntityModel { get; set; }
 	}
 }

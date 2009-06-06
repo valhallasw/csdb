@@ -38,6 +38,7 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <StartupObject>csdb.edmx.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -105,6 +106,13 @@
     <Compile Include="CsdbOptions.cs" />
     <Compile Include="DatabaseBuilder.cs" />
     <Compile Include="DbPermissionsHelper.cs" />
+    <Compile Include="edmx\edmxDataMember.cs" />
+    <Compile Include="edmx\edmxMethodInfo.cs" />
+    <Compile Include="edmx\edmxModel.cs" />
+    <Compile Include="edmx\edmxPropertyInfo.cs" />
+    <Compile Include="edmx\edmxTable.cs" />
+    <Compile Include="edmx\edmxType.cs" />
+    <Compile Include="edmx\Program.cs" />
     <Compile Include="MetaSynchronizer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
