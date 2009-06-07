@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.Linq.Mapping;
+using System.Xml.Linq;
 
 namespace csdb.edmx
 {
@@ -15,10 +16,52 @@ namespace csdb.edmx
         public Boolean isPrimaryKey;
         public MetaType parentType;
         public edmxPropertyInfo pi;
+        public XElement c;
 
-        public edmxDataMember(String name) {
-            this.name = name;
+        public edmxDataMember(XElement _c, MetaType _parentType, List<String> pks) {
+            c = _c;
+            parentType = _parentType;
+            name = c.Attribute("Name").Value;
+            pi = new edmxPropertyInfo(c.Parent.Attribute("Name").Value + "." + c.Attribute("Name").Value);
+
+            parseMember(pks);
         }
+
+        public void parseMember(List<String> pks) {
+            determineType();
+            determineNullable();
+            determinePk(pks);
+            determineGenerated();
+        }
+
+        private void determineGenerated() {
+           isDbGenerated = (c.Attribute("StoreGeneratedPattern") != null);
+        }
+
+        public void determinePk(List<String> pks) {
+            if (pks.Contains(name)) {
+                isPrimaryKey = true;
+            }
+        }
+
+        public void determineNullable() {
+            try {
+                nullable = Convert.ToBoolean(c.Attribute("Nullable").Value);
+            } catch (System.NullReferenceException) {
+                nullable = false;
+            }
+        }
+
+        public void determineType() {
+            dbType = c.Attribute("Type").Value;
+
+            if (c.Attribute("Maxlength") != null) {
+                dbType += String.Format("({0})", c.Attribute("Maxlength"));
+            } else if (dbType == "nvarchar" || dbType == "char") {
+                dbType += "(2000)";
+            }
+        }
+
 
         public override MetaAssociation Association {
             get { throw new NotImplementedException(); }
