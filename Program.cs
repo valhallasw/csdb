@@ -51,12 +51,18 @@ namespace csdb
 					else
 					{
 						type = asm.GetType(Options.TypeName, true);
+                        CreateOrUpdateDatabase(type, Options.ConnectionString, Options.ScriptFile);
 					}
 				}
 				else if (Options.TypeName.IsNotNullOrEmpty())
 				{
 					type = Type.GetType(Options.TypeName);
-				}
+                    CreateOrUpdateDatabase(type, Options.ConnectionString, Options.ScriptFile);
+				} else if (Options.EntityModel.IsNotNullOrEmpty())
+                {
+                    var model = new edmx.edmxModel(Options.EntityModel);
+                    CreateOrUpdateDatabase(model, Options.ConnectionString, Options.ScriptFile);
+                }
 				if (type != null)
 				{
 					CreateOrUpdateDatabase(type, Options.ConnectionString, Options.ScriptFile);
@@ -71,33 +77,36 @@ namespace csdb
 			//Console.ReadLine();
 		}
 
-		static void CreateOrUpdateDatabase(Type type, string cs, string scriptFile)
-		{
-			MetaModel model = null;
+        static void CreateOrUpdateDatabase(Type type, string cs, string scriptFile)
+        {
+            MetaModel model = null;
 			if (type != null)
 			{
 				var ms = new AttributeMappingSource();
 				model = ms.GetModel(type);
 			}
+
+            if (cs.IsNullOrEmpty()) {
+                try {
+                    var x = (DataContext)Activator.CreateInstance(type, true);
+                    cs = x.Connection.ConnectionString;
+                } catch (Exception e) {
+                    throw new Exception("Cannot obtain connection string from DataContext " + type, e);
+                }
+            }
+
+            CreateOrUpdateDatabase(model, cs, scriptFile);
+        }
+
+		static void CreateOrUpdateDatabase(MetaModel model, string cs, string scriptFile)
+		{
 			if (cs.IsNullOrEmpty())
 			{
-				try
-				{
-					var x = (DataContext)Activator.CreateInstance(type, true);
-					cs = x.Connection.ConnectionString;
-				}
-				catch (Exception e)
-				{
-					throw new Exception("Cannot obtain connection string from DataContext " + type, e);
-				}
+				throw new Exception("ConnectionString not provided for DataContext: " + model.DatabaseName);
 			}
-			if (cs.IsNullOrEmpty())
-			{
-				throw new Exception("ConnectionString not provided for DataContext: " + type);
-			}
-			Log.Inform("Updating database from type {0}, {1}", type, cs);
+			Log.Inform("Updating database from type {0}, {1}", model.DatabaseName, cs);
 			Log.Inform(cs);
-			Log.Inform("{0}", type);
+			Log.Inform("{0}", model.DatabaseName);
 			//dc.Log = Console.Out;
 			var ms2 = new MetaSynchronizer(model, cs);
 			ms2.ScriptFile = scriptFile;
